@@ -2,11 +2,19 @@ import { PublicKey } from "@metaplex-foundation/js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, TransactionSignature } from "@solana/web3.js";
 import Image from "next/image";
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { notify } from "../utils/notifications";
+import { mintWithMetaplexJs } from "../utils/metaplex";
+import { useNetworkConfiguration } from "contexts/NetworkConfigurationProvider";
+
+const TOKEN_NAME = "Newly Created NFT";
+const TOKEN_SYMBOL = "TEST";
+const TOKEN_DESCRIPTION = "NFT minted through this minter front end";
+//const COLLECTION = new PublicKey("");
 
 export const NftMinter: FC = () => {
   const { connection } = useConnection();
+  const { networkConfiguration } = useNetworkConfiguration();
   const { publicKey } = useWallet();
   const wallet = useWallet();
 
@@ -23,6 +31,7 @@ export const NftMinter: FC = () => {
       // Creates a string containing an object URL that can be used to reference the contents of the specified source object.
       setCreateObjectUrl(URL.createObjectURL(uploadedImage));
 
+      // Upload image
       const body = new FormData();
       body.append("file", uploadedImage);
       await fetch("/api/upload", {
@@ -35,7 +44,32 @@ export const NftMinter: FC = () => {
     }
   };
 
-  const mintNFT = async () => {};
+  const mintNFT = useCallback(async () => {
+    if (!wallet.publicKey) {
+      console.log("error", "Wallet not connected!");
+      notify({
+        type: "error",
+        message: "error",
+        description: "Wallet not connected!",
+      });
+      return;
+    }
+
+    await mintWithMetaplexJs(
+      connection,
+      networkConfiguration,
+      wallet,
+      TOKEN_NAME,
+      TOKEN_SYMBOL,
+      TOKEN_DESCRIPTION,
+      //COLLECTION,
+      image
+    ).then(([mintAddress, signature]) => {
+      setMintAddress(mintAddress);
+      setMintSignature(signature);
+    });
+    console.log("Mint with metaplex called");
+  }, [wallet, connection, networkConfiguration, image]);
 
   return (
     <div>

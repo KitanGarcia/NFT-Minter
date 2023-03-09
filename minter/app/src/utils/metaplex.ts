@@ -14,7 +14,7 @@ export async function mintWithMetaplexJs(
   name: string,
   symbol: string,
   description: string,
-  collection: PublicKey,
+  //collection: PublicKey,
   image: File
 ): Promise<[string, string]> {
   const metaplex = Metaplex.make(connection)
@@ -39,7 +39,7 @@ export async function mintWithMetaplexJs(
     sellerFeeBasisPoints: 0,
     tokenOwner: wallet.publicKey,
     mintTokens: true,
-    collection,
+    //collection,
   });
 
   return [nft.address.toBase58(), response.signature];
